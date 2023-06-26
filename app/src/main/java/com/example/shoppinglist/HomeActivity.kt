@@ -1,5 +1,7 @@
 package com.example.shoppinglist
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -16,6 +18,8 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
+        supportActionBar?.setTitle("Shopping List")
 
         viewModel = ViewModelProvider(this)[ShoppingViewModel::class.java]
 
