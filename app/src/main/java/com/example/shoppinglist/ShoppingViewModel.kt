@@ -9,15 +9,23 @@ import kotlinx.coroutines.launch
 class ShoppingViewModel(application: Application): AndroidViewModel(application) {
 
     private val repository: ShoppingListRepository
-    var allshoppingItems: LiveData<MutableList<ShoppingList>>
+    var allShoppingItems: LiveData<MutableList<ShoppingList>>
 
     init {
         val shoppingDao = ShoppingListDb.getInstance(application)?.shoppingListDao()
         repository = shoppingDao?.let { ShoppingListRepository(it) }!!
-        allshoppingItems = repository.allShoppingList
+        allShoppingItems = repository.allShoppingList
     }
 
     fun insert(shoppingItem: ShoppingList) = viewModelScope.launch {
         repository.insertShoppingItem(shoppingItem)
+    }
+
+    fun delete(shoppingItem: ShoppingList) = viewModelScope.launch {
+        repository.deleteShoppingItem(shoppingItem)
+    }
+
+    fun update(shoppingItem: ShoppingList) = viewModelScope.launch {
+        repository.updateShoppingItem(shoppingItem)
     }
 }
