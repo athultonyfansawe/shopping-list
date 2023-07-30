@@ -8,23 +8,17 @@
     android:paddingTop="16dp"
     tools:context=".HomeActivity">
 
-    <EditText
-        android:id="@+id/editText"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tv_no_items"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:ems="10"
-        android:hint="Add Item"
-        android:inputType="textPersonName"
-        android:textSize="18sp"
+        android:text="No items added"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    <!--    android:layout_marginHorizontal="16dp"-->
-    <!--    android:layout_marginTop="80dp"-->
-    <!--    android:layout_height="46dp"-->
-    <!--    android:text="Add Item"-->
-    <!--    app:layout_constraintHorizontal_bias="0.497"-->
 
     <Button
         android:id="@+id/button_addItem"

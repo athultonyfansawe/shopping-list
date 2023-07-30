@@ -10,16 +10,27 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ListView
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.shoppinglist.databinding.DialogAddItemBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var viewModel: ShoppingViewModel
-    private lateinit var adapter: ArrayAdapter<String>
+    private lateinit var adapter: ShoppingListAdapter
+    private lateinit var shoppingRepo: ShoppingListRepository
+    private lateinit var shoppingDao: ShoppingListDao
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        supportActionBar?.setTitle("Shopping List")
+        supportActionBar?.title = "Shopping List"
+
+        val database = ShoppingListDb.getInstance(this)
 
         viewModel = ViewModelProvider(this)[ShoppingViewModel::class.java]
 
@@ -50,8 +61,34 @@ class HomeActivity : AppCompatActivity() {
             adapter.clear()
             shoppingList.forEach { item ->
                 adapter.add(item.itemName)
+        // Add item and category
+        addButton.setOnClickListener {
+            // Open a custom alert dialog to add items
+            val dialog = LayoutInflater.from(this@HomeActivity).inflate(R.layout.dialog_add_item, null, false)
+            val binder = DialogAddItemBinding.bind(dialog)
+            val builder = MaterialAlertDialogBuilder(this@HomeActivity)
+            builder.setView(dialog)
+                .setTitle("Add Item")
+                .setPositiveButton("Add", null)
+
+            val alertDialog = builder.show() // Show the dialog
+
+            // Set a custom positive button click listener to handle the add action
+            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val itemName = binder.etItemName.text.toString()
+                val category = binder.etCategory.text.toString().lowercase() // category is always lowercase
+
+                // Check if both fields are not empty
+                if (itemName.isNotBlank() && category.isNotBlank()) {
+                    viewModel.insert(ShoppingList(itemName = itemName, category = category))
+                    adapter.notifyDataSetChanged()
+                    alertDialog.dismiss()
+                } else {
+                    // Error message if any of the fields is empty
+                    Toast.makeText(this@HomeActivity, "Both fields are required.", Toast.LENGTH_SHORT).show()
+                }
             }
-            adapter.notifyDataSetChanged()
         }
     }
-}
+
+
