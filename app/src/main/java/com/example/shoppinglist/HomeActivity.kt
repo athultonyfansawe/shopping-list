@@ -1,14 +1,13 @@
 package com.example.shoppinglist
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ListView
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -34,33 +33,61 @@ class HomeActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this)[ShoppingViewModel::class.java]
 
-        val addButton = findViewById<Button>(R.id.button_addItem)
-        val editText = findViewById<EditText>(R.id.editText)
-        val listView = findViewById<ListView>(R.id.list_view_shopping)
+        val listView = findViewById<RecyclerView>(R.id.list_view_shopping)
+        val addButton = findViewById<ExtendedFloatingActionButton>(R.id.btn_add)
+        val search = findViewById<SearchView>(R.id.searchView)
+        val noDataTv = findViewById<TextView>(R.id.tv_no_items)
 
-        // Create an empty adapter
-        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, mutableListOf())
-        listView.adapter = adapter
+        if (database != null) {
+            shoppingDao = database.shoppingListDao()
+            shoppingRepo = ShoppingListRepository(shoppingDao)
 
-        // Add button
-        addButton.setOnClickListener {
-            val item = editText.text.toString()
+            // Create an empty adapter
+            adapter = ShoppingListAdapter(this, shoppingRepo)
+            listView.setHasFixedSize(true)
+            listView.setItemViewCacheSize(20)
+            listView.layoutManager = LinearLayoutManager(this) // items will be shown vertically by default
+            listView.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL)) // Divider decoration... showing a horizontal line
+            listView.adapter = adapter
 
-            if (item.isNotEmpty()) {
-                viewModel.insert(ShoppingList(itemName = item))
-                Log.d("HomeActivitys", "Added item: $item")
 
-                adapter.add(item) // Add item to the adapter
-                adapter.notifyDataSetChanged() // Notify the adapter that data has changed
-                editText.text.clear() // Clear the text input once a shopping item is added
+            // Observe the data from the ViewModel and update the adapter
+            viewModel.allShoppingItems.observe(this) { shoppingList ->
+                adapter.updateItems(shoppingList)
+
+                // Check if the database is empty
+                if (shoppingList.size == 1) {
+                    search.visibility = View.GONE // Hide the search view when 1 data is available
+                    noDataTv.visibility = View.GONE // Hide the no data text when 1 data is available
+                } else if(shoppingList.size > 1) {
+                    search.visibility = View.VISIBLE // Hide the search view when more than 1 data is available
+                    noDataTv.visibility = View.GONE // Show the no data text when more than 1 data is available
+                }else{
+                    search.visibility = View.GONE // Hide the search view data is available
+                    noDataTv.visibility = View.VISIBLE // Show the no data text when data is available
+                }
+
             }
+        } else {
+            Toast.makeText(this, "Failed to initialize the database", Toast.LENGTH_SHORT).show()
         }
 
-        // Observe the data from the ViewModel and update the adapter
-        viewModel.allshoppingItems.observe(this) { shoppingList ->
-            adapter.clear()
-            shoppingList.forEach { item ->
-                adapter.add(item.itemName)
+        // Search view
+        search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = true
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                newText?.let { query ->
+                    if (::adapter.isInitialized) {
+                        adapter.filter.filter(query) // Trigger the filtering process
+                    }
+                }
+                return true
+            }
+
+        })
+
+
         // Add item and category
         addButton.setOnClickListener {
             // Open a custom alert dialog to add items
@@ -90,5 +117,6 @@ class HomeActivity : AppCompatActivity() {
             }
         }
     }
+}
 
 
